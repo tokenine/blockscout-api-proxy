@@ -1,5 +1,6 @@
 services:
   go-api-proxy:
+    image: ghcr.io/tokenine/blockscout-api-proxy
     build:
       context: .
       dockerfile: Dockerfile
