@@ -88,6 +88,11 @@ func (h *StandardProxyHandler) copyHeaders(src, dst http.Header) {
 			continue
 		}
 		
+		// Skip CORS headers from backend - let our CORS middleware handle them
+		if h.isCORSHeader(key) {
+			continue
+		}
+		
 		for _, value := range values {
 			dst.Add(key, value)
 		}
@@ -109,6 +114,27 @@ func (h *StandardProxyHandler) isHopByHopHeader(header string) bool {
 	
 	for _, hopHeader := range hopByHopHeaders {
 		if header == hopHeader {
+			return true
+		}
+	}
+	return false
+}
+
+// isCORSHeader checks if a header is a CORS header that should be handled by our CORS middleware
+func (h *StandardProxyHandler) isCORSHeader(header string) bool {
+	corsHeaders := []string{
+		"Access-Control-Allow-Origin",
+		"Access-Control-Allow-Methods",
+		"Access-Control-Allow-Headers",
+		"Access-Control-Allow-Credentials",
+		"Access-Control-Expose-Headers",
+		"Access-Control-Max-Age",
+		"Access-Control-Request-Method",
+		"Access-Control-Request-Headers",
+	}
+	
+	for _, corsHeader := range corsHeaders {
+		if header == corsHeader {
 			return true
 		}
 	}

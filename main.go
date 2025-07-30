@@ -72,11 +72,13 @@ func NewProxyServer(cfg *config.Config) (*ProxyServer, error) {
 
 // setupRoutes configures the HTTP routes and handlers
 func (ps *ProxyServer) setupRoutes(mux *http.ServeMux) {
-	// Health check endpoint
-	mux.HandleFunc("/health", ps.healthCheckHandler)
+	// Health check endpoint (with CORS)
+	healthHandler := middleware.NewCORSHandler(http.HandlerFunc(ps.healthCheckHandler))
+	mux.Handle("/health", healthHandler)
 	
-	// Main routing handler
-	mux.HandleFunc("/", ps.routeHandler)
+	// Main routing handler (with CORS)
+	routeHandler := middleware.NewCORSHandler(http.HandlerFunc(ps.routeHandler))
+	mux.Handle("/", routeHandler)
 }
 
 // routeHandler implements the main request routing logic
