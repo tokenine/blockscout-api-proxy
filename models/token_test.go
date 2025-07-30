@@ -46,6 +46,36 @@ func TestToken_JSONMarshaling(t *testing.T) {
 	}
 }
 
+func TestWhitelistToken_JSONMarshaling(t *testing.T) {
+	// Test WhitelistToken struct JSON marshaling/unmarshaling
+	iconURL := "https://example.com/icon.png"
+	whitelistToken := WhitelistToken{
+		Address: "0x5db2B3f16E1a28ad4fe1229a2dc01f264a3f0614",
+		IconURL: &iconURL,
+	}
+
+	// Marshal to JSON
+	data, err := json.Marshal(whitelistToken)
+	if err != nil {
+		t.Fatalf("Failed to marshal whitelist token: %v", err)
+	}
+
+	// Unmarshal back to WhitelistToken
+	var unmarshaled WhitelistToken
+	err = json.Unmarshal(data, &unmarshaled)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal whitelist token: %v", err)
+	}
+
+	// Verify fields
+	if unmarshaled.Address != whitelistToken.Address {
+		t.Errorf("Expected address %s, got %s", whitelistToken.Address, unmarshaled.Address)
+	}
+	if unmarshaled.IconURL == nil || *unmarshaled.IconURL != *whitelistToken.IconURL {
+		t.Errorf("Expected icon_url %s, got %v", *whitelistToken.IconURL, unmarshaled.IconURL)
+	}
+}
+
 func TestTokenResponse_JSONMarshaling(t *testing.T) {
 	// Test TokenResponse struct JSON marshaling/unmarshaling
 	tokens := []Token{

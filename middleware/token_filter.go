@@ -93,13 +93,15 @@ func (h *TokenFilterHandler) filterTokens(response *models.TokenResponse, logger
 		"whitelist_size": h.whitelist.Size(),
 	})
 	
-	// Filter tokens based on whitelist
+	// Filter tokens based on whitelist and apply custom properties
 	var filteredTokens []models.Token
 	matchedAddresses := make([]string, 0)
 	
 	for _, token := range response.Items {
 		if h.whitelist.Contains(token.Address) {
-			filteredTokens = append(filteredTokens, token)
+			// Apply custom properties from whitelist
+			modifiedToken := h.applyWhitelistProperties(token)
+			filteredTokens = append(filteredTokens, modifiedToken)
 			matchedAddresses = append(matchedAddresses, token.Address)
 		}
 	}
@@ -111,6 +113,37 @@ func (h *TokenFilterHandler) filterTokens(response *models.TokenResponse, logger
 	
 	// Return filtered response (empty array if no matches)
 	return &models.TokenResponse{Items: filteredTokens}
+}
+
+// applyWhitelistProperties applies custom properties from whitelist to a token
+func (h *TokenFilterHandler) applyWhitelistProperties(token models.Token) models.Token {
+	// Get whitelist token info
+	whitelistToken := h.whitelist.GetTokenInfo(token.Address)
+	if whitelistToken == nil {
+		return token
+	}
+	
+	// Create a copy of the token to avoid modifying the original
+	modifiedToken := token
+	
+	// Replace icon_url if specified in whitelist
+	if whitelistToken.IconURL != nil && *whitelistToken.IconURL != "" {
+		originalIcon := "null"
+		if token.IconURL != nil {
+			originalIcon = *token.IconURL
+		}
+		
+		modifiedToken.IconURL = whitelistToken.IconURL
+		
+		// Log the replacement for debugging (using INFO level to ensure it shows)
+		logger.MiddlewareLogger.Info("Replaced token icon_url from whitelist", map[string]interface{}{
+			"address":          token.Address,
+			"original_icon":    originalIcon,
+			"whitelist_icon":   *whitelistToken.IconURL,
+		})
+	}
+	
+	return modifiedToken
 }
 
 // handleError handles different types of errors and returns appropriate HTTP responses

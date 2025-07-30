@@ -32,9 +32,16 @@ type TokenResponse struct {
 	Items []Token `json:"items"`
 }
 
+// WhitelistToken represents a token in the whitelist with custom properties
+type WhitelistToken struct {
+	Address string  `json:"address"`
+	IconURL *string `json:"icon_url,omitempty"`
+}
+
 // TokenWhitelist manages a thread-safe list of whitelisted token addresses
 type TokenWhitelist struct {
-	Addresses []string `json:"addresses"`
+	Tokens    []WhitelistToken `json:"tokens,omitempty"`
+	Addresses []string         `json:"addresses,omitempty"` // Legacy format support
 	mu        sync.RWMutex
 }
 
@@ -55,7 +62,8 @@ func (tw *TokenWhitelist) LoadFromJSON(data []byte) error {
 	})
 	
 	var temp struct {
-		Addresses []string `json:"addresses"`
+		Tokens    []WhitelistToken `json:"tokens,omitempty"`
+		Addresses []string         `json:"addresses,omitempty"`
 	}
 	
 	if err := json.Unmarshal(data, &temp); err != nil {
@@ -63,15 +71,36 @@ func (tw *TokenWhitelist) LoadFromJSON(data []byte) error {
 		return err
 	}
 	
-	// Ensure addresses is never nil
-	if temp.Addresses == nil {
-		tw.Addresses = make([]string, 0)
-	} else {
+	// Handle new format with tokens array
+	if temp.Tokens != nil && len(temp.Tokens) > 0 {
+		tw.Tokens = temp.Tokens
+		// Also populate addresses for backward compatibility
+		tw.Addresses = make([]string, len(temp.Tokens))
+		for i, token := range temp.Tokens {
+			tw.Addresses[i] = token.Address
+		}
+		logger.ModelsLogger.Debug("Loaded whitelist with token info", map[string]interface{}{
+			"token_count": len(tw.Tokens),
+		})
+	} else if temp.Addresses != nil {
+		// Handle legacy format with addresses array
 		tw.Addresses = temp.Addresses
+		tw.Tokens = make([]WhitelistToken, len(temp.Addresses))
+		for i, addr := range temp.Addresses {
+			tw.Tokens[i] = WhitelistToken{Address: addr}
+		}
+		logger.ModelsLogger.Debug("Loaded legacy whitelist format", map[string]interface{}{
+			"address_count": len(tw.Addresses),
+		})
+	} else {
+		// Empty whitelist
+		tw.Addresses = make([]string, 0)
+		tw.Tokens = make([]WhitelistToken, 0)
 	}
 	
 	logger.ModelsLogger.Debug("Successfully parsed whitelist JSON", map[string]interface{}{
 		"address_count": len(tw.Addresses),
+		"token_count":   len(tw.Tokens),
 	})
 	
 	return nil
@@ -88,6 +117,19 @@ func (tw *TokenWhitelist) Contains(address string) bool {
 		}
 	}
 	return false
+}
+
+// GetTokenInfo returns the whitelist token info for a given address (thread-safe)
+func (tw *TokenWhitelist) GetTokenInfo(address string) *WhitelistToken {
+	tw.mu.RLock()
+	defer tw.mu.RUnlock()
+	
+	for _, token := range tw.Tokens {
+		if token.Address == address {
+			return &token
+		}
+	}
+	return nil
 }
 
 // GetAddresses returns a copy of the addresses slice (thread-safe)
