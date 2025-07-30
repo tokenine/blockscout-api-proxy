@@ -1,0 +1,39 @@
+services:
+  go-api-proxy-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-api-proxy-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Development backend (you can change this to your dev backend)
+      BACKEND_HOST: "https://exp.co2e.cc"
+      
+      # Development port
+      PORT: "8080"
+      
+      # Whitelist configuration
+      WHITELIST_FILE: "whitelist.json"
+      
+      # Shorter timeout for development
+      HTTP_TIMEOUT: "10"
+    volumes:
+      # Mount whitelist file for easy updates
+      - ./whitelist.json:/app/whitelist.json:ro
+      
+      # Mount source code for development (if using live reload)
+      # - .:/app
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  dev-network:
+    driver: bridge

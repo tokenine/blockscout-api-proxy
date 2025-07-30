@@ -1,0 +1,12 @@
+{
+  "_comment": "Whitelist of approved token addresses for the Go API Proxy",
+  "_description": "Only tokens with addresses listed here will be returned by the /api/v2/tokens endpoint",
+  "addresses": [
+    "0x5db2B3f16E1a28ad4fe1229a2dc01f264a3f0614",
+    "0x7254B7303A9d5d0A2F232eB62B0B27a06E068Ac7",
+    "0xA0b86a33E6441E8e421B7b4E6b5c4b8e8e8e8e8e",
+    "0xB1c97a44F7552F9f532C8c5F7c6c9c9f9f9f9f9f",
+    "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "0xA0b86a33E6441E8e421B7b4E6b5c4b8e8e8e8e8e"
+  ]
+}

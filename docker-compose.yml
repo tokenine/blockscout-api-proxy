@@ -1,0 +1,48 @@
+services:
+  go-api-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-api-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      # Backend API configuration
+      BACKEND_HOST: "https://exp.co2e.cc"
+      
+      # Server configuration
+      PORT: "80"
+      
+      # Whitelist configuration
+      WHITELIST_FILE: "whitelist.json"
+      
+      # HTTP timeout in seconds
+      HTTP_TIMEOUT: "30"
+    volumes:
+      # Mount whitelist file for easy updates without rebuilding
+      - ./whitelist.json:/app/whitelist.json:ro
+      
+      # Optional: Mount logs directory if you want persistent logs
+      # - ./logs:/app/logs
+    networks:
+      - proxy-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+networks:
+  proxy-network:
+    driver: bridge
