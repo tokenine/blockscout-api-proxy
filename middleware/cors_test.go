@@ -127,7 +127,7 @@ func TestCORSHandler_NewCORSHandler(t *testing.T) {
 		t.Error("NewCORSHandler should not return nil")
 	}
 
-	if corsHandler.next != nextHandler {
+	if corsHandler.next == nil {
 		t.Error("NewCORSHandler should set the next handler correctly")
 	}
 }

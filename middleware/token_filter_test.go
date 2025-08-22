@@ -380,8 +380,8 @@ func TestTokenFilterHandler_Integration(t *testing.T) {
 		if r.URL.Path == "/api/v2/tokens" {
 			response := models.TokenResponse{
 				Items: []models.Token{
-					{Address: "0x1234", Name: "Token1", Symbol: "TK1"},
-					{Address: "0x5678", Name: "Token2", Symbol: "TK2"},
+					{Address: "0x1234", AddressHash: "0x1234", Name: "Token1", Symbol: "TK1"},
+					{Address: "0x5678", AddressHash: "0x5678", Name: "Token2", Symbol: "TK2"},
 				},
 			}
 			w.Header().Set("Content-Type", "application/json")

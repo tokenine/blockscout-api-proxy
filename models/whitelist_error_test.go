@@ -71,14 +71,14 @@ func TestWhitelistErrorHandling(t *testing.T) {
 		whitelist := NewTokenWhitelist()
 		err = whitelist.LoadFromFile(tmpFile.Name())
 		
-		// Should not return an error (missing addresses field results in empty array)
-		if err != nil {
-			t.Errorf("Expected no error for missing addresses field, got: %v", err)
+		// Should return an error because tokens field contains strings instead of objects
+		if err == nil {
+			t.Error("Expected error for invalid structure, got nil")
 		}
 		
-		// Whitelist should be empty
-		if whitelist.Size() != 0 {
-			t.Errorf("Expected empty whitelist, got size %d", whitelist.Size())
+		// Error should mention parsing failure
+		if err != nil && !contains(err.Error(), "failed to parse") {
+			t.Errorf("Expected parsing error, got: %v", err)
 		}
 	})
 	

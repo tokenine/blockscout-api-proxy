@@ -98,11 +98,11 @@ func (h *TokenFilterHandler) filterTokens(response *models.TokenResponse, logger
 	matchedAddresses := make([]string, 0)
 	
 	for _, token := range response.Items {
-		if h.whitelist.Contains(token.Address) {
+		if h.whitelist.Contains(token.AddressHash) {
 			// Apply custom properties from whitelist
 			modifiedToken := h.applyWhitelistProperties(token)
 			filteredTokens = append(filteredTokens, modifiedToken)
-			matchedAddresses = append(matchedAddresses, token.Address)
+			matchedAddresses = append(matchedAddresses, token.AddressHash)
 		}
 	}
 	
@@ -118,7 +118,7 @@ func (h *TokenFilterHandler) filterTokens(response *models.TokenResponse, logger
 // applyWhitelistProperties applies custom properties from whitelist to a token
 func (h *TokenFilterHandler) applyWhitelistProperties(token models.Token) models.Token {
 	// Get whitelist token info
-	whitelistToken := h.whitelist.GetTokenInfo(token.Address)
+	whitelistToken := h.whitelist.GetTokenInfo(token.AddressHash)
 	if whitelistToken == nil {
 		return token
 	}
@@ -137,7 +137,7 @@ func (h *TokenFilterHandler) applyWhitelistProperties(token models.Token) models
 		
 		// Log the replacement for debugging (using INFO level to ensure it shows)
 		logger.MiddlewareLogger.Info("Replaced token icon_url from whitelist", map[string]interface{}{
-			"address":          token.Address,
+			"address":          token.AddressHash,
 			"original_icon":    originalIcon,
 			"whitelist_icon":   *whitelistToken.IconURL,
 		})
